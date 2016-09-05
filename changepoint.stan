@@ -4,12 +4,6 @@ data {
     real D[N]; 
 }
 
-// stan operates on log scale
-transformed data {
-    real log_unif;
-    log_unif = -log(N);
-}
-
 parameters {
     real mu1;
     real mu2;
@@ -25,7 +19,7 @@ transformed parameters {
       vector[N] log_p;
       real mu;
       real sigma;
-      log_p = rep_vector(log_unif, N);
+      log_p = rep_vector(-log(N), N);
       for (tau in 1:N)
         for (i in 1:N) {
           mu = i < tau ? mu1 : mu2;
