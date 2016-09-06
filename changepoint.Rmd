@@ -1,7 +1,6 @@
 ---
 title: "Bayesian changepoint detection with R and Stan"
 author: "Gabriele Modena"
-date: "31 July 2016"
 output: html_document
 ---
 
@@ -14,7 +13,7 @@ set.seed(42)
 ```
 
 
-In this document I'll review a Bayesian approach to detect a single changepoint in a timeseries. I'll implement a model using [stan](http://mc-stan.org) and show how to interpret its output in R using the [rstan](http://mc-stan.org/interfaces/rstan) package. The code for this article can be found at https://github.com/gmodena/bayesian-changepoint.
+In this document I'll review a Bayesian approach to detect a single changepoint in a timeseries. I'll implement a model using [stan](http://mc-stan.org) and show how to interpret its output in R using the [rstan](http://mc-stan.org/interfaces/rstan) package. The code for this article can be found at [https://github.com/gmodena/bayesian-changepoint](https://github.com/gmodena/bayesian-changepoint).
 
 ## The frequentist approach
 
@@ -105,7 +104,7 @@ We know that $P(D|\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)=\frac{P(D,\tau,\mu_1,\sigm
 
 To marginalize out $\tau$ we'll consider a factorization into likelihood and prior as $P(D,\mu_1,\sigma_1,\mu_2,\sigma_2) = P(D|\mu_1,\sigma_1,\mu_2,\sigma_2)P(\mu_1,\sigma_1,\mu_2,\sigma_2)$.
 
-Then we calculate the likelihood $$P(D|\mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{n=1}^N P(\tau, D | \mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{\tau=1}^N P(\tau) P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)=\sum_{\tau=1}^N P(\tau) \prod_{n=1}^N P(d_n|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)$$. Where $P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2$ is a product of Gaussians. 
+Then we calculate the likelihood $P(D|\mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{n=1}^N P(\tau, D | \mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{\tau=1}^N P(\tau) P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)=\sum_{\tau=1}^N P(\tau) \prod_{n=1}^N P(d_n|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)$. Where $P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2$ is a product of Gaussians. 
 
 The `transformed paramters` block is used to process the `parameters` before calculating the posterior. In the block that follows we marginalize out `tau` and calculate `log_p(D | mu1, sd1, mu2, sd2)`. Since `stan` works in logarithmic scale, we'll have to take the sum of the log PDFs (`normal_lpdf`).
 ```{markdown}
@@ -167,7 +166,7 @@ The `softmax` transform maps `log_p` to a [K-simplex](https://en.wikipedia.org/w
 ## Putting it all together
 
 Let's generate some artificial data to test if the models works as expected.
-```{r}
+```{r bayesian-changepoint-data}
 x1 <- rnorm(41, mean=15, sd=1.5)
 x2 <- rnorm(79, mean=17, sd=1.1)
 
@@ -213,13 +212,13 @@ print(fit)
 Looking at the table, we can see that the `log_p` has a minimum at index 42. We can see this more explicitely if we look at an histogram of
 the discrete values of `tau`
 
-```{r}
+```{r bayesian-changepoint-tau-hist}
 qplot(extract(fit)$tau, geom='histogram', xlab = "tau") 
 print(fit, pars=c("tau"))
 ```
 
 We also get the credible inteterval of $\tau$ using the `plot` function with
-```{r}
+```{r bayesian-changepoint-ci}
 plot(fit, pars=c("tau"))
 ```
 The plot indicates the expected value of $\tau = 42$. The red bands denote the 80% credible interval; if we were to repeat the expriment several time, we'd expect $\tau$ to lie in the interval $41 \leq \tau \leq 44$ with probability $P=0.80$. The black bands denote the 95% credible interval.
@@ -229,8 +228,7 @@ This results is consistent with the dataset $D$.
 ## Conclusion
 In this document I showed a simple yet powerful bayesian model for detecting a signle changepoint in a timeseries. The advantages over the frequentis approach are twofold. On the one hand, the Bayesian model gives a distribution of changepoints and not a single point estimate. This lets us reason about how credible the model output is. On the other hand, we don't need to hard-code threshold values for a test statistic, but rather embed our prior knowledge about the data to "tune" the model.
 
-It's not all roses though. The flexiblity given to us by the Bayesian framework comes at the expenses of more math being needed to lay out a model[^2]. This is largely due to `stan`s implementation choices wrt discrete random variables. For a more concise changepoint model, written with the PyMC framework one can have a look at the work of my colleague Vincent at [Switching to Sampling in order to Switch](http://koaning.io/switching-to-sampling-in-order-to-switch.html). A drawback of the Bayesian approach is that it is relatively computational expensive. On my machine (a 2015 retina macbook pro), it takes about 7 seconds to run the MCMC simulation on four cores. For comparison, the `changepoint` package has a sub-second run time.
+It's not all roses though. The flexiblity given to us by the Bayesian framework comes at the expenses of some math being needed to work with a discrete parameter. This is largely due to `stan`s implementation choices wrt discrete random variables. For a more concise changepoint model, written with the PyMC framework one can have a look at the work of my colleague Vincent at [Switching to Sampling in order to Switch](http://koaning.io/switching-to-sampling-in-order-to-switch.html). A drawback of the Bayesian approach is that it is relatively computational expensive. On my machine (a 2015 retina macbook pro), it takes about 7 seconds to run the MCMC simulation on four cores. For comparison, the `changepoint` package has a sub-second run time.
 
 
 [^1]: The excellent [changepoint](https://cran.r-project.org/web/packages/changepoint/index.html) R package implements this likelihood test, as well as its natural extension to the case of multiple change points.
-[^2]: one might see this as "pro" :)
