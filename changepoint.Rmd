@@ -30,7 +30,7 @@ Under $H_0$, the log-likelihood of $D$ is $log P(D|\mu, \sigma)$. Under $H_1$ th
 
 We then perform a maximum likelihood estimation to find the value $\tau$ that maximizes $ll_{\tau}$, which we use to construct a test statistic $\lambda = 2 [ max_{\tau} ll_{\tau}) - log P(D|\mu, \sigma)]$.
 
-A change point has happened iff $\lambda > c$, for a given $c$. What is a good value of $c$?. As it turns out, *the appropriate value for this parameter c is still an open research question with several authors devising p values and other information criteria under different types of changes* [changepoint: An R Package for Changepoint Analysis](https://www.jstatsoft.org/article/view/v058i03). 
+A changepoint has happened iff $\lambda > c$, for a given $c$. What is a good value of $c$?. As it turns out, *the appropriate value for this parameter c is still an open research question with several authors devising p values and other information criteria under different types of changes* [changepoint: An R Package for Changepoint Analysis](https://www.jstatsoft.org/article/view/v058i03). 
 
 ## Bayesian changepoint detection
 
@@ -85,7 +85,7 @@ data {
 
 ### Parameters
 
-The `parameter` block describes the sampling sapce.
+The `parameter` block describes the sampling space.
 
 In our example, we want to module two Gaussian, each with a `mu` and `sigma`. We constrain `sigma1` and `sigma2` to be positive
 (`{markdown}<lower=0>`), so that we can stick an half-normal prior on them later on.
@@ -99,7 +99,7 @@ parameters {
 }
 ```
 
-Stan does not allow to sample from discrete distributions, so we will have to reparametrize our models and marginalize out  $\tau$. Let's proceed one step at a time.
+Stan does not allow to sample from discrete distributions, so we will have to reparametrize our model and marginalize out  $\tau$. Let's proceed one step at a time.
 
 We know that $P(D|\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)=\frac{P(D,\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)}{P(\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)}$. It follows that the joint probability distribution factors as $P(D,\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)=P(D|\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)P(\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)$.
 
@@ -161,7 +161,7 @@ generated quantities {
 }
 ```
 
-A `softmax` transform maps `log_p` to a [K-simplex](https://en.wikipedia.org/wiki/Simplex#The_standard_simplex), which is the parameter type expected by `categorical_rng`. The label will be the index of `log_p`.
+The `softmax` transform maps `log_p` to a [K-simplex](https://en.wikipedia.org/wiki/Simplex#The_standard_simplex), which is the parameter type expected by `categorical_rng`. The label will be the index of `log_p`.
 
 
 ## Putting it all together
@@ -187,11 +187,11 @@ rstan_options(auto_write = TRUE) # cache a compiled Stan program
 ```
 
 The `stan` function wraps the following three steps:
- 1. Translate a model in Stan code to C++ code
- 2. Compile the C++ code to a dynamic shared object (DSO) and load the DSO
- 3. Sample given some user-specified data and other settings
+1. Translate a model in Stan code to C++ code
+2. Compile the C++ code to a dynamic shared object (DSO) and load the DSO
+3. Sample given some user-specified data and other settings
 
-the funtion returns `fit` is an S4 object of class `stanfit`. We can use methods such as `print` and`plot` (and `pairs`) to checkout the fitted results.
+The funtion returns an S4 object of class `stanfit`. We can use methods such as `print` and`plot` (and `pairs`) to checkout the fitted results.
 
 ```{r}
 fit <- stan(
