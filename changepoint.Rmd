@@ -104,12 +104,12 @@ We know that $P(D|\tau,\mu_1,\sigma_1,\mu_2,\sigma_2)=\frac{P(D,\tau,\mu_1,\sigm
 
 To marginalize out $\tau$ we'll consider a factorization into likelihood and prior as $P(D,\mu_1,\sigma_1,\mu_2,\sigma_2) = P(D|\mu_1,\sigma_1,\mu_2,\sigma_2)P(\mu_1,\sigma_1,\mu_2,\sigma_2)$.
 
-Then we calculate the likelihood $P(D|\mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{n=1}^N P(\tau, D | \mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{\tau=1}^N P(\tau) P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)=\sum_{\tau=1}^N P(\tau) \prod_{n=1}^N P(d_n|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)$. Where $P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2$ is a product of Gaussians. 
+Then we calculate the likelihood $P(D|\mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{n=1}^N P(\tau, D | \mu_1, \sigma_1, \mu_2, \sigma_2) = \sum_{\tau=1}^N P(\tau) P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)=\sum_{\tau=1}^N P(\tau) \prod_{n=1}^N P(d_n|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)$. Where $P(D|\tau, \mu_1, \sigma_1, \mu_2, \sigma_2)$ is a product of Gaussians. 
 
 The `transformed paramters` block is used to process the `parameters` before calculating the posterior. In the block that follows we marginalize out `tau` and calculate `log_p(D | mu1, sd1, mu2, sd2)`. Since `stan` works in logarithmic scale, we'll have to take the sum of the log PDFs (`normal_lpdf`).
 ```{markdown}
 // TODO: we can calculate log_p(D | mu1, sd1, mu2, sd2) in 
-// linear via dynamic programming
+// linear time with dynamic programming
 transformed parameters {
       vector[N] log_p;
       real mu;
@@ -190,7 +190,7 @@ The `stan` function wraps the following three steps:
 2. Compile the C++ code to a dynamic shared object (DSO) and load the DSO
 3. Sample given some user-specified data and other settings
 
-The funtion returns an S4 object of class `stanfit`. We can use methods such as `print` and`plot` (and `pairs`) to checkout the fitted results.
+The function returns an S4 object of class `stanfit`. We can use methods such as `print` and`plot` (and `pairs`) to checkout the fitted results.
 
 ```{r}
 fit <- stan(
@@ -228,7 +228,8 @@ This results is consistent with the dataset $D$.
 ## Conclusion
 In this document I showed a simple yet powerful bayesian model for detecting a signle changepoint in a timeseries. The advantages over the frequentis approach are twofold. On the one hand, the Bayesian model gives a distribution of changepoints and not a single point estimate. This lets us reason about how credible the model output is. On the other hand, we don't need to hard-code threshold values for a test statistic, but rather embed our prior knowledge about the data to "tune" the model.
 
-It's not all roses though. The flexiblity given to us by the Bayesian framework comes at the expenses of some math being needed to work with a discrete parameter. This is largely due to `stan`s implementation choices wrt discrete random variables. For a more concise changepoint model, written with the PyMC framework one can have a look at the work of my colleague Vincent at [Switching to Sampling in order to Switch](http://koaning.io/switching-to-sampling-in-order-to-switch.html). A drawback of the Bayesian approach is that it is relatively computational expensive. On my machine (a 2015 retina macbook pro), it takes about 7 seconds to run the MCMC simulation on four cores. For comparison, the `changepoint` package has a sub-second run time.
+It's not all roses though. The flexiblity given to us by the Bayesian framework comes at the expenses of some math being needed to work with a discrete parameter. This is largely due to `stan`s implementation choices wrt discrete random variables. For a more concise changepoint model, written with the PyMC framework one can have a look at the work of my colleague Vincent at [Switching to Sampling in order to Switch](http://koaning.io/switching-to-sampling-in-order-to-switch.html). A drawback of the Bayesian approach is that it is relatively computational expensive. On my machine (a 2015 retina macbook pro), it takes about 7 seconds to run the MCMC simulation on four cores[^2]. For comparison, the `changepoint` package has a sub-second run time.
 
 
 [^1]: The excellent [changepoint](https://cran.r-project.org/web/packages/changepoint/index.html) R package implements this likelihood test, as well as its natural extension to the case of multiple change points.
+[^2]: The `transformed paramters` block has a quadratic time complexity. Stan's manual contains a dynamic programming alternative with linear time complexity.
