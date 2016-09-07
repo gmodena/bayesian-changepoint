@@ -19,15 +19,15 @@ In this document, I'll review a Bayesian approach to detect a single changepoint
 
 Let $D = {d_1, ..., d_n}$ be a time series with $n$ *normally distributed* data points. To determine whether a change of parameters $\mu$ and $\sigma$ at point $\tau$ is significant, one possible approach would be to perform a likelihood test. In this setting run a hypothesis test where the null hypothesis $H_0$ is *there is no changepoint in $D$*, and the alternate hypothesis $H_1$ is *there is at most one changepoint at $\tau \in D$*[^1].
 
-More formally $H_0$ says that $\forall d_n \in D$  we have $d_n \sim  \mathcal{N}(\mu, \sigma)$ 
+More formally $H_0$ says that $\forall n$  we have $d_n \sim  \mathcal{N}(\mu, \sigma)$ 
 
-Where $H_1$ says that  $\forall d_n \in D$
+Where $H_1$ says that  $\forall n$
 
 $$d_n \sim \begin{cases} \mathcal{N}(\mu_1, \sigma_1) & \mbox{if } n  \lt \tau \\ \mathcal{N}(\mu_2, \sigma_2), & \mbox{if } n  \geq \tau \end{cases}$$
 
 Under $H_0$, the log-likelihood of $D$ is $log P(D|\mu, \sigma)$. Under $H_1$ the log-likelihood of $D$ is $ll_\tau = log P(D_{1..{\tau-1}} | \mu_1, \sigma_1) + log P(D_{\tau..n} | \mu_2, \sigma_2)$.
 
-We then perform a maximum likelihood estimation to find the value $\tau$ that maximizes $ll_{\tau}$, which we use to construct a test statistic $\lambda = 2 [ max_{\tau} ll_{\tau}) - log P(D|\mu, \sigma)]$.
+We then perform a maximum likelihood estimation to find the value $\tau$ that maximizes $ll_{\tau}$, which we use to construct a test statistic $\lambda = 2 [ max_{\tau} ll_{\tau} - log P(D|\mu, \sigma)]$.
 
 A changepoint has happened iff $\lambda > c$, for a given $c$. What is a good value of $c$?. As it turns out, *the appropriate value for this parameter c is still an open research question with several authors devising p values and other information criteria under different types of changes* [changepoint: An R Package for Changepoint Analysis](https://www.jstatsoft.org/article/view/v058i03). 
 
