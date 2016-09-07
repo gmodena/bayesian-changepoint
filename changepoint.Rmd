@@ -17,7 +17,7 @@ In this document, I'll review a Bayesian approach to detect a single changepoint
 
 ## The frequentist approach
 
-Let $D = {d_1, ..., d_n}$ be a time series with $n$ *normally distributed* data points. To determine whether a change of parameters $\mu$ and $\sigma$ at point $\tau$ is significant, one possible approach would be to perform a likelihood test. In this setting run a hypothesis test where the null hypothesis $H_0$ is *there is no changepoint in $D$*, and the alternate hypothesis $H_1$ is *there is at most one changepoint at $\tau \in D$*[^1].
+Let $D = {d_1, ..., d_n}$ be a time series with $n$ *normally distributed* data points. To determine whether a change of parameters $\mu$ and $\sigma$ at point $\tau$ is significant, one possible approach would be to perform a likelihood test. In this setting we run a hypothesis test where the null hypothesis $H_0$ is *there is no changepoint in $D$*, and the alternate hypothesis $H_1$ is *there is at most one changepoint at $\tau \in D$*[^1].
 
 More formally $H_0$ says that $\forall n$  we have $d_n \sim  \mathcal{N}(\mu, \sigma)$ 
 
@@ -56,11 +56,11 @@ $$ d_n \sim \begin{cases} \mathcal{N}(\mu_1, \sigma_1) & \mbox{if } n  \lt \tau 
 
 In many practical applications, a closed form solution for the posterior is hard to derive (eg. the integral is hard, or impossible to calculate), and approximation methods such as  [Markov Chain Monte Carlo](https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo) (MCMC) are required.
 
-In the reminder of this document we'll code this model as a `stan` program, and fit the model with  MCMC to calculate the posterior probability $P(\tau |D, \mu_1, \sigma_1, \mu_2, \sigma_2)$.
+In the reminder of this document we'll code this model as a `stan` program, and fit the model with  MCMC to calculate the posterior probability $P(\tau, \mu_1, \sigma_1, \mu_2, \sigma_2 |D)$.
 
 ### Stan
 
-[stan](http://mc-stan.org) is a C++ library that comes with a domain specific modelling language very similar to statistical notation. Stan can help us to perform the Bayesian analysis steps, including MCMC inference (and more advanced techniques). The model that I will illustrate in the remainder of this document, is an adaptation of the [Coal Mine Distater](https://pymc-devs.github.io/pymc/tutorial.html) example from Stan's manual Section 12. The full code of this model can be found at https://gist.github.com/gmodena/0f316232aa2e9f7b6fc76b49f14bfb31.
+[stan](http://mc-stan.org) is a C++ library that comes with a domain specific modelling language very similar to statistical notation. Stan can help us to perform the Bayesian analysis steps, including MCMC inference (and more advanced techniques). The model that I will illustrate in the remainder of this document, is an adaptation of the [Coal Mine Distater](https://pymc-devs.github.io/pymc/tutorial.html) example from [Stan's manual](https://github.com/stan-dev/stan/releases/download/v2.12.0/stan-reference-2.12.0.pdf) Section 12. The full code of this model can be found at [https://gist.github.com/gmodena/0f316232aa2e9f7b6fc76b49f14bfb31](https://gist.github.com/gmodena/0f316232aa2e9f7b6fc76b49f14bfb31).
 
 A stan program is structured in blocks of code. Each block defines: 
 1. the data
@@ -146,7 +146,7 @@ model {
 }
 ```
 
-What about the posterior? This is where some of Stan's magic kicks in. At each iteration of MCMC sampling after convergence, $\mu_1, \sigma_1, \mu_2, \sigma_2$ are drawn from $P( \mu_1, \sigma_1, \mu_2, \sigma_2 | D)$, and $P(\tau| \mu_1, \sigma_1, \mu_2, \sigma_2)$ is calculated based on the local unnormalized value of `log_p`. As a final step $P(\tau| \mu_1, \sigma_1, \mu_2, \sigma_2)$ is normalized by averaging over all draws. More details on this step can be found in Stan's manual.
+What about the posterior? This is where some of Stan's magic kicks in. At each iteration of MCMC sampling after convergence, $\mu_1, \sigma_1, \mu_2, \sigma_2$ are drawn from $P( \mu_1, \sigma_1, \mu_2, \sigma_2 | D)$, and $P(\tau| \mu_1, \sigma_1, \mu_2, \sigma_2, D)$ is calculated based on the local unnormalized value of `log_p`. As a final step $P(\tau | \mu_1, \sigma_1, \mu_2, \sigma_2, D)$ is normalized by averaging over all draws to obtain $P(\tau|D)$. More details on this step can be found in Stan's manual.
 
 ### Discrete sampling
 The `generated quantities` block allows for postprocessing. We can use it to draw a discrete sampling of `tau` at each iteration using the `categorical_rng` probability distribution. At each iteration we draw a value of `tau`, and later on, we'll look at the histogram of draws to determine the most likely changepoint as the most frequent `tau`.
@@ -222,7 +222,7 @@ We also get the credible inteterval of $\tau$ using the `plot` function with
 ```{r bayesian-changepoint-ci}
 plot(fit, pars=c("tau"))
 ```
-The plot indicates the expected value of $\tau = 42$. The red bands denote the 80% credible interval; if we were to repeat the expriment several time, we'd expect $\tau$ to lie in the interval $41 \leq \tau \leq 44$ with probability $P=0.80$. The black bands denote the 95% credible interval.
+The plot indicates the expected value of $\tau = 42$. The red bands denote the 80% credible interval; if we were to repeat the experiment several time, we'd expect $\tau$ to lie in the interval $41 \leq \tau \leq 44$ with probability $P=0.80$. The black bands denote the 95% credible interval.
 
 This result is consistent with the dataset $D$.
 
